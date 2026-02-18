@@ -10,25 +10,23 @@ const montserrat = Montserrat({
     variable: "--font-montserrat",
 });
 
-export const metadata: Metadata = {
-    title: "Neurodiversion",
-    description: "A production-ready Next.js application",
-};
-
 export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className={cn(
-                "min-h-screen bg-background font-sans antialiased",
-                inter.variable,
-                montserrat.variable
-            )}>
+        <html lang="en" className="h-full overflow-hidden">
+            <body
+                className={cn(
+                    "h-full overflow-hidden bg-background font-sans antialiased",
+                    inter.variable,
+                    montserrat.variable
+                )}
+            >
                 {children}
             </body>
         </html>
     );
 }
+
