@@ -171,8 +171,14 @@
 "use client"
 
 import { Home, Bell, User, Play } from "lucide-react"
+import ResponseModal from "@/components/ui/ResponseModal"
+import { useState } from "react"
+
 
 export default function ActivityView() {
+
+const [modalOpen, setModalOpen] = useState(false)
+const [resultType, setResultType] = useState<"logrado" | "porLograr">("logrado")
 
   return (
     <section className="min-h-screen bg-[#F2F2F2] flex flex-col font-montserrat">
@@ -283,11 +289,23 @@ export default function ActivityView() {
 
             <div className="flex justify-center gap-6 lg:gap-44 flex-wrap">
 
-              <button className="px-10 lg:px-14 py-3 lg:py-4 bg-[#80C342] text-white text-lg lg:text-2xl font-bold rounded-full border-[3px] border-black">
+              <button 
+               onClick={() => {
+    setResultType("logrado")
+    setModalOpen(true)
+  }}
+
+              className="px-10 lg:px-14 py-3 lg:py-4 bg-[#80C342] text-white text-lg lg:text-2xl font-bold rounded-full border-[3px] border-black cursor-pointer">
                 Logrado
               </button>
 
-              <button className="px-10 lg:px-14 py-3 lg:py-4 bg-[#848688] text-white text-lg lg:text-2xl font-bold rounded-full border-[3px] border-black">
+              <button
+             onClick={() => {
+    setResultType("porLograr")
+    setModalOpen(true)
+  }}
+
+              className="px-10 lg:px-14 py-3 lg:py-4 bg-[#848688] text-white text-lg lg:text-2xl font-bold rounded-full border-[3px] border-black">
                 Por lograr
               </button>
 
@@ -337,7 +355,11 @@ export default function ActivityView() {
         </div>
 
         <User className="w-6 h-6 text-black" />
-
+<ResponseModal
+  open={modalOpen}
+  type={resultType}
+  onClose={() => setModalOpen(false)}
+/>
       </div>
 
     </section>
