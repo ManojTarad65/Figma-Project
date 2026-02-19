@@ -24,12 +24,7 @@ export default function NnaMainView() {
   return (
     <section className="min-h-screen bg-[#FEFEFE] flex flex-col font-montserrat">
 
-      {/* Top Strip */}
-      <div className="w-full h-[6px] flex">
-        <div className="h-full w-1/3 bg-[#80C342]" />
-        <div className="h-full w-1/3 bg-[#FFCC00]" />
-        <div className="h-full w-1/3 bg-[#F05A28]" />
-      </div>
+
 
       <div className="flex w-full flex-1">
 
