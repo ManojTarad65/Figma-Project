@@ -1,8 +1,43 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
 
 export default function ResetPasswordPage() {
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const router = useRouter()
+
+  const handleUpdatePassword = async () => {
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden")
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      setMessage("Contraseña actualizada correctamente")
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    } catch (err: any) {
+      setError(err.message || "Error al actualizar la contraseña")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="min-h-screen bg-[#ED3237] font-montserrat px-6">
 
@@ -27,11 +62,15 @@ export default function ResetPasswordPage() {
               <input
                 type="password"
                 placeholder="Ingrese nueva contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 className="
                   w-full
                   h-20
                   bg-white
-                  text-gray-400
+                  font-montserrat
+                  text-black
                   rounded-full
                   border-[4px] border-black
                   pl-20 pr-8
@@ -56,11 +95,15 @@ export default function ResetPasswordPage() {
               <input
                 type="password"
                 placeholder="Ingrese nuevamente su contraseña"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
                 className="
                   w-full
                   h-20
                   bg-white
-                  text-gray-400
+                  font-montserrat
+                  text-black
                   rounded-full
                   border-[4px] border-black
                   pl-20 pr-8
@@ -73,9 +116,23 @@ export default function ResetPasswordPage() {
             </div>
           </div>
 
+          {message && (
+            <div className="text-white text-xl font-bold text-center bg-green-600/50 p-4 rounded-lg">
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="text-white text-xl font-bold text-center bg-black/20 p-4 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* ================= CONFIRM BUTTON ================= */}
           <div className="pt-2">
             <button
+              onClick={handleUpdatePassword}
+              disabled={loading}
               className="
                 w-full
                 h-20
@@ -88,9 +145,11 @@ export default function ResetPasswordPage() {
                 hover:bg-zinc-900
                 transition
                 shadow-xl
+                disabled:opacity-50
+                disabled:cursor-not-allowed
               "
             >
-              Confirmar
+              {loading ? 'Actualizando...' : 'Confirmar'}
             </button>
           </div>
 

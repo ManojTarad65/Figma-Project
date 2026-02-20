@@ -1,9 +1,57 @@
-
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { User, Lock } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
+import { useAppContext } from "@/store/app-context"
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const router = useRouter()
+  const { setPermissions } = useAppContext()
+
+  const handleLogin = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) throw authError
+
+      console.log("LOGIN SUCCESS")
+
+      // Fetch app context
+      console.log("Calling RPC get_app_context")
+      const { data: contextData, error: contextError } = await supabase.rpc('get_app_context')
+
+      console.log("RPC RESULT:", contextData, contextError)
+
+      if (contextError) throw contextError
+
+      if (contextData) {
+        setPermissions(contextData.permissions)
+        router.push(contextData.redirect_to)
+      } else {
+        throw new Error("No se pudo obtener el contexto de la aplicación")
+      }
+
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Error al iniciar sesión")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="min-h-screen bg-[#ED3237] font-montserrat px-6">
 
@@ -19,21 +67,24 @@ export default function LoginPage() {
           {/* ================= USERNAME ================= */}
           <div>
             <label className="block text-white text-2xl md:text-3xl font-bold mb-2 text-center">
-              Nombre usuario
+              Correo electrónico
             </label>
 
             <div className="relative">
               <User className="absolute left-6 top-1/2 -translate-y-1/2 text-[#D64641] w-12 h-12" />
 
               <input
-                type="text"
-                placeholder="Rodrigo Andrés Tapia Jensen"
+                type="email"
+                placeholder="correo@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
                 className="
                   w-full
                   h-20
                   font-montserrat
                   bg-white
-                  text-gray-400
+                  text-black
                   rounded-full
                   border-[4px] border-black
                   pl-20 pr-8
@@ -58,12 +109,15 @@ export default function LoginPage() {
               <input
                 type="password"
                 placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
                 className="
                   w-full
                   h-20
                   bg-white
                   font-montserrat
-                  text-gray-400
+                  text-black
                   rounded-full
                   border-[4px] border-black
                   pl-20 pr-8
@@ -76,9 +130,17 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {error && (
+            <div className="text-white text-xl font-bold text-center bg-black/20 p-4 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* ================= LOGIN BUTTON ================= */}
           <div className="pt-2 text-center">
             <button
+              onClick={handleLogin}
+              disabled={loading}
               className="
                 w-full
                 h-20
@@ -92,12 +154,17 @@ export default function LoginPage() {
                 hover:bg-zinc-900
                 transition
                 shadow-xl
+                disabled:opacity-50
+                disabled:cursor-not-allowed
               "
             >
-              Iniciar sesión
+              {loading ? 'Iniciando...' : 'Iniciar sesión'}
             </button>
 
-            <button className="mt-2 text-white text-2xl font-bold underline underline-offset-4 hover:opacity-80 transition">
+            <button
+              onClick={() => router.push('/forgot-password')}
+              className="mt-2 text-white text-2xl font-bold underline underline-offset-4 hover:opacity-80 transition"
+            >
               Olvidó contraseña
             </button>
           </div>
@@ -109,6 +176,7 @@ export default function LoginPage() {
             </label>
 
             <button
+              onClick={() => router.push('/signup')}
               className="
                 w-full
                 h-20

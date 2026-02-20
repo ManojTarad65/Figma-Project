@@ -1,8 +1,33 @@
 "use client"
 
+import { useState } from "react"
 import { Mail } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleResetPassword = async () => {
+    setLoading(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${location.origin}/auth/callback?next=/reset-password`,
+      })
+      if (error) throw error
+      setMessage("Se ha enviado un correo con instrucciones para restablecer la contraseña if an account exists.")
+    } catch (err: any) {
+      setError(err.message || "Error al enviar el correo")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <section className="min-h-screen bg-[#ED3237] font-montserrat px-6">
 
@@ -27,11 +52,15 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 placeholder="Ingrese correo electrónico"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
                 className="
                   w-full
                   h-20
                   bg-white
-                  text-gray-400
+                  font-montserrat
+                  text-black
                   rounded-full
                   border-[4px] border-black
                   pl-20 pr-8
@@ -44,9 +73,23 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
 
+          {message && (
+            <div className="text-white text-xl font-bold text-center bg-green-600/50 p-4 rounded-lg">
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div className="text-white text-xl font-bold text-center bg-black/20 p-4 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* ================= BUTTON ================= */}
           <div className="pt-2">
             <button
+              onClick={handleResetPassword}
+              disabled={loading}
               className="
                 w-full
                 h-20
@@ -59,9 +102,11 @@ export default function ForgotPasswordPage() {
                 hover:bg-zinc-900
                 transition
                 shadow-xl
+                disabled:opacity-50
+                disabled:cursor-not-allowed
               "
             >
-              Enviar correo electrónico
+              {loading ? 'Enviando...' : 'Enviar correo electrónico'}
             </button>
           </div>
 
